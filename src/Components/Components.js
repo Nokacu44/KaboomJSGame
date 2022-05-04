@@ -1,5 +1,100 @@
 import kaboom from "kaboom"
 
+let curDraggin = null
+function drag() {
+
+	// The displacement between object pos and mouse pos
+	let offset = vec2(0)
+
+	return {
+		// Name of the component
+		id: "drag",
+		// This component requires the "pos" and "area" component to work
+		require: [ "pos", "area", ],
+		// "add" is a lifecycle method gets called when the obj is added to scene
+		add() {
+			// TODO: these need to be checked in reverse order
+			// "this" in all methods refer to the obj
+			this.onClick(() => {
+				if (curDraggin) {
+					return
+				}
+				curDraggin = this
+				offset = mousePos().sub(this.pos)
+				// Remove the object and re-add it, so it'll be drawn on top
+				readd(this)
+			})
+		},
+		// "update" is a lifecycle method gets called every frame the obj is in scene
+		update() {
+			if (curDraggin === this) {
+				cursor("move")
+				this.pos = mousePos().sub(offset)
+			}
+		},
+	}
+
+}
+
+// drop
+onMouseRelease(() => {
+	curDraggin = null
+})
+function itemCells(quantity = 1, offsetX = 0, offsetY = 0){
+	let cells = []
+	const offX = offsetX
+	const offY = offsetY
+	return {
+		id:"itemCells",
+		
+		load(){
+			let owner = this
+			for(i=0;i<quantity;i++){
+				const cell = add([
+					rect(32,32), 
+					color(BLACK), 
+					z(2), 
+					pos(offX,offY + (i * 32) * 1.2),
+					area(),
+					{
+						selected: false,
+						offsetPos:vec2(0),
+						update(){
+							this.pos = owner.pos.add(this.offsetPos)
+							this.hidden = owner.hidden
+							if (this.isHovering() && !this.selected){
+								this.color = GREEN
+							} else if (!this.isHovering()) {
+								this.color = BLACK
+								this.selected = false
+							}							
+						}
+					}
+				])
+				cell.onClick(() => {
+					// debug
+					cell.selected = true
+					cell.color = BLUE
+				})
+				cell.offsetPos = cell.pos
+				cells.push(cell)
+			}
+		},
+	}
+}
+const inventory = [
+	rect(256,256 * 1.5),
+	itemCells(7,12,12),
+	drag(),
+	area(),
+	pos(0,0)
+]
+
+onKeyPress('i', () => {
+	inventory.hidden = !inventory.hidden
+})
+
+
 export function dialog(dialogs){
     let textbox = null
     let dialog_text = null
