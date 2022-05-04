@@ -51,6 +51,7 @@ export function dialog(dialogs){
   
 export function InteractArea(areaTransform,areaOrigin, tag ,onInteraction){
     let areaEffect = null
+    let owner = null;
     return {
         id:"InteractArea",
         load(){
@@ -59,7 +60,7 @@ export function InteractArea(areaTransform,areaOrigin, tag ,onInteraction){
                 area(areaTransform),
                 origin(areaOrigin)
             ])
-
+            owner = this;
             areaEffect.onCollide(tag,onInteraction)
         },
         update(){
@@ -104,7 +105,7 @@ export function dialogInteraction(areaTransform,areaOrigin, tag ){
         }
     }
 }
-  
+
 export function InputMovementLateral(speed){
     return {
         load(){
